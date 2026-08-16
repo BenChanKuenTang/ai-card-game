@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +25,7 @@
         .game-container {
             width: 100%;
             max-width: 480px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 24px;
             padding: 24px;
@@ -34,20 +33,73 @@
             text-align: center;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
         header h1 {
             font-size: 1.6rem;
             color: #d63384;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
 
         header p {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #666;
         }
 
+        /* 玩家設定區塊 */
+        .setup-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #ffccd5;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #ff4d6d;
+        }
+
+        .player-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            min-height: 32px;
+        }
+
+        .player-chip {
+            background: #ffe6eb;
+            color: #d63384;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .player-chip span {
+            cursor: pointer;
+            color: #ff4d6d;
+            font-weight: bold;
+        }
+
+        /* 遊戲資訊與卡牌區塊 */
         .stats-bar {
             display: flex;
             justify-content: space-around;
@@ -59,11 +111,26 @@
             color: #d63384;
         }
 
+        .target-player-box {
+            background: #ff4d6d;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: none;
+            animation: popIn 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
         .card-wrapper {
             perspective: 1000px;
             width: 100%;
-            height: 280px;
-            margin: 10px 0;
+            height: 260px;
         }
 
         .card {
@@ -76,17 +143,16 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 24px;
+            padding: 20px;
             box-shadow: 0 8px 16px rgba(220, 53, 69, 0.1);
             position: relative;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .card-tag {
             position: absolute;
-            top: 16px;
-            left: 16px;
-            background: #ff4d6d;
+            top: 14px;
+            left: 14px;
+            background: #ff758f;
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
@@ -95,16 +161,17 @@
         }
 
         .card-content {
-            font-size: 1.25rem;
-            line-height: 1.6;
+            font-size: 1.2rem;
+            line-height: 1.5;
             font-weight: 600;
             color: #2b2b2b;
             word-break: break-word;
         }
 
+        /* 按鈕區塊 */
         .btn-group {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-direction: column;
         }
 
@@ -112,10 +179,10 @@
             background: linear-gradient(45deg, #ff4d6d, #ff758f);
             color: white;
             border: none;
-            padding: 16px;
-            font-size: 1.1rem;
+            padding: 14px;
+            font-size: 1.05rem;
             font-weight: bold;
-            border-radius: 16px;
+            border-radius: 14px;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(255, 77, 109, 0.3);
             transition: transform 0.1s ease, opacity 0.2s ease;
@@ -125,12 +192,18 @@
             transform: scale(0.98);
         }
 
+        .btn-add {
+            background: #ff4d6d;
+            padding: 0 16px;
+            box-shadow: none;
+        }
+
         .btn-secondary {
             background: #e9ecef;
             color: #495057;
             box-shadow: none;
-            padding: 12px;
-            font-size: 0.95rem;
+            padding: 10px;
+            font-size: 0.9rem;
         }
 
         .btn:disabled {
@@ -138,210 +211,265 @@
             cursor: not-allowed;
             box-shadow: none;
         }
+
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
-
 <body>
 
-    <div class="game-container">
-        <header>
-            <h1>❤️ 心動真心話</h1>
-            <p>戀愛價值觀與處境派對卡牌</p>
-        </header>
+<div class="game-container">
+    <header>
+        <h1>❤️ 心動真心話</h1>
+        <p>戀愛價值觀與處境派對卡牌</p>
+    </header>
 
+    <!-- 階段一：玩家輸入 -->
+    <div id="setup-panel" class="setup-section">
+        <div class="input-group">
+            <input type="text" id="player-input" placeholder="輸入玩家名字 (例如: Alex)" onkeypress="handleKeyPress(event)">
+            <button class="btn btn-add" onclick="addPlayer()">新增</button>
+        </div>
+        <div class="player-tags" id="player-list"></div>
+        <button class="btn" id="start-btn" onclick="startGame()" disabled>開始遊戲 (至少需要2人)</button>
+    </div>
+
+    <!-- 階段二：卡牌遊戲 -->
+    <div id="game-panel" class="hidden">
         <div class="stats-bar">
-            <div>當前玩家：<span id="player-num">玩家 1</span></div>
             <div>剩餘題目：<span id="remaining-count">100</span> / 100</div>
+        </div>
+
+        <div id="target-player-box" class="target-player-box">
+            🎯 請 <span id="current-player-name">---</span> 回答！
         </div>
 
         <div class="card-wrapper">
             <div class="card" id="card">
                 <span class="card-tag" id="card-tag">點擊抽牌</span>
                 <div class="card-content" id="card-content">
-                    準備好開始了嗎？<br>請輪流點擊下方按鈕抽牌！
+                    準備好了嗎？<br>點擊下方按鈕隨機抽取玩家與題目！
                 </div>
             </div>
         </div>
 
         <div class="btn-group">
-            <button class="btn" id="draw-btn" onclick="drawCard()">🎲 輪到我抽牌</button>
-            <button class="btn btn-secondary" onclick="resetGame()">🔄 重新開始遊戲</button>
+            <button class="btn" id="draw-btn" onclick="drawCard()">🎲 隨機抽牌與玩家</button>
+            <button class="btn btn-secondary" onclick="resetToSetup()">⚙️ 重設玩家 / 重新開始</button>
         </div>
     </div>
+</div>
 
-    <script>
-        const originalQuestions = [
-            // 價值觀類 (1-35)
-            { tag: "價值觀", text: "你認為愛情中「性格互補」定「興趣一致」比較重要？" },
-            { tag: "價值觀", text: "你接不接受另一半同異性朋友單獨食飯？極限去到邊？" },
-            { tag: "價值觀", text: "結婚對你嚟講係愛情嘅必經階段，定係一張紙？" },
-            { tag: "價值觀", text: "你覺得拍拖期間，男女應該 AA 制定係輪流請？" },
-            { tag: "價值觀", text: "如果另一半收入高過你好多，你會覺得有壓力定好開心？" },
-            { tag: "價值觀", text: "你覺得理想嘅「個人空間」同「陪伴時間」比例係幾多？" },
-            { tag: "價值觀", text: "你認為愛情可以維持一輩子，定係隨時間一定會轉化成親情？" },
-            { tag: "價值觀", text: "你會唔會因為屋企人反對而同另一半分手？" },
-            { tag: "價值觀", text: "你覺得拍拖幾耐先適合同居？" },
-            { tag: "價值觀", text: "對你嚟講，肉體出軌定精神出軌比較嚴重？" },
-            { tag: "價值觀", text: "你點睇「先入為主」嘅擇偶條件（例如身高、學歷、家境）？" },
-            { tag: "價值觀", text: "如果你發現另一半有微小的消費惡習（如課金/買盲盒），你會點處理？" },
-            { tag: "價值觀", text: "你覺得拍拖應否公開到社交平台（IG/FB）？" },
-            { tag: "價值觀", text: "你認為事業同愛情邊樣應該放在人生現階段嘅第一位？" },
-            { tag: "價值觀", text: "你接受到同另一半政治立場或者宗教信仰完全相反嗎？" },
-            { tag: "價值觀", text: "如果對方想生小朋友而你唔想，你會選擇妥協定分手？" },
-            { tag: "價值觀", text: "你覺得一見鍾情靠譜，定係日久生情比較持久？" },
-            { tag: "價值觀", text: "你接唔接受到遠距離戀愛（Long Distance）？極限係幾耐？" },
-            { tag: "價值觀", text: "你覺得同前任保持朋友關係係可行的嗎？" },
-            { tag: "價值觀", text: "你心目中「完美約會」嘅定義係咩？" },
-            { tag: "價值觀", text: "拍拖時你最看重對方嘅邊種特質：善良、幽默、上進定係外貌？" },
-            { tag: "價值觀", text: "你覺得「同甘共苦」定「門當戶對」更係婚姻穩定嘅基石？" },
-            { tag: "價值觀", text: "如果對方想睇你手機，你會大方畀定覺得隱私被侵犯？" },
-            { tag: "價值觀", text: "你認為分手後仲可唔可以做朋友？" },
-            { tag: "價值觀", text: "你覺得愛情裡面需要「善意的謊言」嗎？" },
-            { tag: "價值觀", text: "你對另一半嘅前任數量有冇介意或者限制？" },
-            { tag: "價值觀", text: "你覺得幾多歲係最理想嘅結婚年齡？" },
-            { tag: "價值觀", text: "如果在熱戀期後發現對方有你難以接受嘅生活習慣，你會點做？" },
-            { tag: "價值觀", text: "你相信「命中注定」嘅靈魂伴侶嗎？" },
-            { tag: "價值觀", text: "如果另一半要到外地發展幾年，你會陪佢去定留在本地？" },
-            { tag: "價值觀", text: "你覺得伴侶之間應該毫無秘密，定係要保有個人空間？" },
-            { tag: "價值觀", text: "你認為「浪漫」係天生定係可以後天學習嘅？" },
-            { tag: "價值觀", text: "你對另一半社交圈子嘅參與度希望有幾高？" },
-            { tag: "價值觀", text: "如果愛情同友情衝突，你會點排優先順序？" },
-            { tag: "價值觀", text: "你認為幸福嘅定義係咩？" },
+<script>
+const originalQuestions = [
+    // 價值觀類 (1-35)
+    { tag: "價值觀", text: "你認為愛情中「性格互補」定「興趣一致」比較重要？" },
+    { tag: "價值觀", text: "你接不接受另一半同異性朋友單獨食飯？極限去到邊？" },
+    { tag: "價值觀", text: "結婚對你嚟講係愛情嘅必經階段，定係一張紙？" },
+    { tag: "價值觀", text: "你覺得拍拖期間，男女應該 AA 制定係輪流請？" },
+    { tag: "價值觀", text: "如果另一半收入高過你好多，你會覺得有壓力定好開心？" },
+    { tag: "價值觀", text: "你覺得理想嘅「個人空間」同「陪伴時間」比例係幾多？" },
+    { tag: "價值觀", text: "你認為愛情可以維持一輩子，定係隨時間一定會轉化成親情？" },
+    { tag: "價值觀", text: "你會唔會因為屋企人反對而同另一半分手？" },
+    { tag: "價值觀", text: "你覺得拍拖幾耐先適合同居？" },
+    { tag: "價值觀", text: "對你嚟講，肉體出軌定精神出軌比較嚴重？" },
+    { tag: "價值觀", text: "你點睇「先入為主」嘅擇偶條件（例如身高、學歷、家境）？" },
+    { tag: "價值觀", text: "如果你發現另一半有微小的消費惡習（如課金/買盲盒），你會點處理？" },
+    { tag: "價值觀", text: "你覺得拍拖應否公開到社交平台（IG/FB）？" },
+    { tag: "價值觀", text: "你認為事業同愛情邊樣應該放在人生現階段嘅第一位？" },
+    { tag: "價值觀", text: "你接受到同另一半政治立場或者宗教信仰完全相反嗎？" },
+    { tag: "價值觀", text: "如果對方想生小朋友而你唔想，你會選擇妥協定分手？" },
+    { tag: "價值觀", text: "你覺得一見鍾情靠譜，定係日久生情比較持久？" },
+    { tag: "價值觀", text: "你接唔接受到遠距離戀愛（Long Distance）？極限係幾耐？" },
+    { tag: "價值觀", text: "你覺得同前任保持朋友關係係可行的嗎？" },
+    { tag: "價值觀", text: "你心目中「完美約會」嘅定義係咩？" },
+    { tag: "價值觀", text: "拍拖時你最看重對方嘅邊種特質：善良、幽默、上進定係外貌？" },
+    { tag: "價值觀", text: "你覺得「同甘共苦」定「門當戶對」更係婚姻穩定嘅基石？" },
+    { tag: "價值觀", text: "如果對方想睇你手機，你會大方畀定覺得隱私被侵犯？" },
+    { tag: "價值觀", text: "你認為分手後仲可唔可以做朋友？" },
+    { tag: "價值觀", text: "你覺得愛情裡面需要「善意的謊言」嗎？" },
+    { tag: "價值觀", text: "你對另一半嘅前任數量有冇介意或者限制？" },
+    { tag: "價值觀", text: "你覺得幾多歲係最理想嘅結婚年齡？" },
+    { tag: "價值觀", text: "如果在熱戀期後發現對方有你難以接受嘅生活習慣，你會點做？" },
+    { tag: "價值觀", text: "你相信「命中注定」嘅靈魂伴侶嗎？" },
+    { tag: "價值觀", text: "如果另一半要到外地發展幾年，你會陪佢去定留在本地？" },
+    { tag: "價值觀", text: "你覺得伴侶之間應該毫無秘密，定係要保有個人空間？" },
+    { tag: "價值觀", text: "你認為「浪漫」係天生定係可以後天學習嘅？" },
+    { tag: "價值觀", text: "你對另一半社交圈子嘅參與度希望有幾高？" },
+    { tag: "價值觀", text: "如果愛情同友情衝突，你會點排優先順序？" },
+    { tag: "價值觀", text: "你認為幸福嘅定義係咩？" },
 
-            // 處境題 (36-70)
-            { tag: "處境題", text: "如果另一半精心準備咗餐飯但好難食，你會直講定假裝好食？" },
-            { tag: "處境題", text: "喺街上見到另一半嘅前任迎面走嚟，你會點反應？" },
-            { tag: "處境題", text: "如果另一半送咗件你覺得好醜嘅禮物畀你，你會點做？" },
-            { tag: "處境題", text: "發現另一半暗中幫緊前任處理困難，你會點處理？" },
-            { tag: "處境題", text: "如果另一半同你屋企人吵架，你會幫哪邊？" },
-            { tag: "處境題", text: "拍拖週年紀念日，對方完全忘記咗，你會點做？" },
-            { tag: "處境題", text: "發現另一半喺社交平台 Like 搞笑妹/帥哥相，你會唔會介意？" },
-            { tag: "處境題", text: "如果你知道另一半的好朋友在背叛佢，你會點提醒？" },
-            { tag: "處境題", text: "如果在聚會中有人當眾批評你另一半，你會點回應？" },
-            { tag: "處境題", text: "另一半想創業但成功率好低，你會全力支持定勸退？" },
-            { tag: "處境題", text: "去旅行時另一半規劃嘅行程極度混亂，你會接手定忍受？" },
-            { tag: "處境題", text: "如果你無意中發現另一半嘅日記，你會唔會打開睇？" },
-            { tag: "處境題", text: "另一半突然話想試下極限運動（如跳傘），但你極度害怕，你會？" },
-            { tag: "處境題", text: "如果你朋友向你告密話見到你另一半同異性睇戲，你會？" },
-            { tag: "處境題", text: "另一半堅持要養寵物，但你對寵物毛過敏，你會點協調？" },
-            { tag: "處境題", text: "如果另一半要求你刪除所有前任嘅相片，你會同意嗎？" },
-            { tag: "處境題", text: "發現另一半瞞住你借錢畀朋友，你會點做？" },
-            { tag: "處境題", text: "另一半喺公眾場合和你大聲吵架，你會點處置？" },
-            { tag: "處境題", text: "你發現另一半保留住前任送嘅昂貴禮物，你會要求佢清走嗎？" },
-            { tag: "處境題", text: "如果對方父母對你態度冷淡甚至挑剔，你會點應對？" },
-            { tag: "處境題", text: "另一半工作壓力大返到屋企黑面，你會點陪伴？" },
-            { tag: "處境題", text: "如果在結婚前夕，你突然對未來產生極大不確定感，你會？" },
-            { tag: "處境題", text: "另一半想買一件超出預算好多嘅奢侈品，你會點勸？" },
-            { tag: "處境題", text: "如果你發現另一半同同事聊天記錄有點曖昧但未出軌，你會？" },
-            { tag: "處境題", text: "聚會時另一半喝醉並失態，你會點處理？" },
-            { tag: "處境題", text: "如果另一半忘記咗你嘅生日，但補準備咗大禮，你會原諒嗎？" },
-            { tag: "處境題", text: "另一半突然想轉行但收入會大幅減少，你會支持嗎？" },
-            { tag: "處境題", text: "如果你同另一半同時鍾意咗同一個擺設，你會讓畀佢定搶？" },
-            { tag: "處境題", text: "發現另一半對你說咗一個關於家境嘅小謊言，你會點做？" },
-            { tag: "處境題", text: "如果另一半嘅閨蜜/兄弟極度討厭你，你會點做？" },
-            { tag: "處境題", text: "旅行期間遇到極端惡劣天氣受困，另一半情緒崩潰，你會？" },
-            { tag: "處境題", text: "發現另一半偷偷參加單身派對，你會點回應？" },
-            { tag: "處境題", text: "如果另一半要求你同佢一齊搬去另一個城市生活，你會？" },
-            { tag: "處境題", text: "另一半迷上咗一種好花時間嘅興趣（如釣魚/打機），忽略咗你，你會？" },
-            { tag: "處境題", text: "如果你發現自己對另一半嘅朋友產生咗好感，你會點做？" },
+    // 處境題 (36-70)
+    { tag: "處境題", text: "如果另一半精心準備咗餐飯但好難食，你會直講定假裝好食？" },
+    { tag: "處境題", text: "喺街上見到另一半嘅前任迎面走嚟，你會點反應？" },
+    { tag: "處境題", text: "如果另一半送咗件你覺得好醜嘅禮物畀你，你會點做？" },
+    { tag: "處境題", text: "發現另一半暗中幫緊前任處理困難，你會點處理？" },
+    { tag: "處境題", text: "如果另一半同你屋企人吵架，你會幫哪邊？" },
+    { tag: "處境題", text: "拍拖週年紀念日，對方完全忘記咗，你會點做？" },
+    { tag: "處境題", text: "發現另一半喺社交平台 Like 搞笑妹/帥哥相，你會唔會介意？" },
+    { tag: "處境題", text: "如果你知道另一半的好朋友在背叛佢，你會點提醒？" },
+    { tag: "處境題", text: "如果在聚會中有人當眾批評你另一半，你會點回應？" },
+    { tag: "處境題", text: "另一半想創業但成功率好低，你會全力支持定勸退？" },
+    { tag: "處境題", text: "去旅行時另一半規劃嘅行程極度混亂，你會接手定忍受？" },
+    { tag: "處境題", text: "如果你無意中發現另一半嘅日記，你會唔會打開睇？" },
+    { tag: "處境題", text: "另一半突然話想試下極限運動（如跳傘），但你極度害怕，你會？" },
+    { tag: "處境題", text: "如果你朋友向你告密話見到你另一半同異性睇戲，你會？" },
+    { tag: "處境題", text: "另一半堅持要養寵物，但你對寵物毛過敏，你會點協調？" },
+    { tag: "處境題", text: "如果另一半要求你刪除所有前任嘅相片，你會同意嗎？" },
+    { tag: "處境題", text: "發現另一半瞞住你借錢畀朋友，你會點做？" },
+    { tag: "處境題", text: "另一半喺公眾場和和你大聲吵架，你會點處置？" },
+    { tag: "處境題", text: "你發現另一半保留住前任送嘅昂貴禮物，你會要求佢清走嗎？" },
+    { tag: "處境題", text: "如果對方父母對你態度冷淡甚至挑剔，你會點應對？" },
+    { tag: "處境題", text: "另一半工作壓力大返到屋企黑面，你會點陪伴？" },
+    { tag: "處境題", text: "如果在結婚前夕，你突然對未來產生極大不確定感，你會？" },
+    { tag: "處境題", text: "另一半想買一件超出預算好多嘅奢侈品，你會點勸？" },
+    { tag: "處境題", text: "如果你發現另一半同同事聊天記錄有點曖昧但未出軌，你會？" },
+    { tag: "處境題", text: "聚會時另一半喝醉並失態，你會點處理？" },
+    { tag: "處境題", text: "如果另一半忘記咗你嘅生日，但補準備咗大禮，你會原諒嗎？" },
+    { tag: "處境題", text: "另一半突然想轉行但收入會大幅減少，你會支持嗎？" },
+    { tag: "處境題", text: "如果你同另一半同時鍾意咗同一個擺設，你會讓畀佢定搶？" },
+    { tag: "處境題", text: "發現另一半對你說咗一個關於家境嘅小謊言，你會點做？" },
+    { tag: "處境題", text: "如果另一半嘅閨蜜/兄弟極度討厭你，你會點做？" },
+    { tag: "處境題", text: "旅行期間遇到極端惡劣天氣受困，另一半情緒崩潰，你會？" },
+    { tag: "處境題", text: "發現另一半偷偷參加單身派對，你會點回應？" },
+    { tag: "處境題", text: "如果另一半要求你同佢一齊搬去另一個城市生活，你會？" },
+    { tag: "處境題", text: "另一半迷上咗一種好花時間嘅興趣（如釣魚/打機），忽略咗你，你會？" },
+    { tag: "處境題", text: "如果你發現自己對另一半嘅朋友產生咗好感，你會點做？" },
 
-            // 真心話 (71-100)
-            { tag: "真心話", text: "分享一次你最尷尬嘅約會經歷。" },
-            { tag: "真心話", text: "你曾經做過最浪漫嘅事係咩？" },
-            { tag: "真心話", text: "你上一段感情分手嘅真正原因係咩？" },
-            { tag: "真心話", text: "你有沒有曾經無心傷害過一個好鍾意你嘅人？" },
-            { tag: "真心話", text: "你最希望另一半改掉嘅一個小習慣係咩？" },
-            { tag: "真心話", text: "你曾經試過「一腳踏兩船」或者成為第三者嗎？" },
-            { tag: "真心話", text: "你對現場哪一位（或第一印象）最有好感？" },
-            { tag: "真心話", text: "你曾經因為咩原因喺感情裡哭得最痛心？" },
-            { tag: "真心話", text: "你有冇試過睇另一半嘅手機並發現秘密？" },
-            { tag: "真心話", text: "你覺得自己喺感情中最致命嘅缺點係咩？" },
-            { tag: "真心話", text: "你最不可告人嘅擇偶隱秘偏好係咩？" },
-            { tag: "真心話", text: "你曾經告白失敗過幾多次？最難過係邊次？" },
-            { tag: "真心話", text: "你有冇試過喺熱戀期過後迅速對一個人失去感覺？" },
-            { tag: "真心話", text: "你最想收到但一直未收到過嘅禮物係咩？" },
-            { tag: "真心話", text: "你上一段感情結束後，花了幾多年/月先走出嚟？" },
-            { tag: "真心話", text: "你做過最瘋狂嘅追人/挽回感情嘅事係咩？" },
-            { tag: "真心話", text: "你覺得現場邊個最似「情場高手」？" },
-            { tag: "真心話", text: "你曾唔曾經喺拍拖期間對其他人動過心？" },
-            { tag: "真心話", text: "你覺得自己係一個合格嘅另一半嗎？給自己打幾多分？" },
-            { tag: "真心話", text: "你最害怕喺感情中遇到咩類型嘅人？" },
-            { tag: "真心話", text: "分享你最心動嘅一個被撩 moments。" },
-            { tag: "真心話", text: "你有冇試過假裝喜歡另一半嘅興趣？" },
-            { tag: "真心話", text: "你覺得理想中嘅求婚過程應該係點樣嘅？" },
-            { tag: "真心話", text: "你有冇試過同好朋友鍾意咗同一個人？最後點處置？" },
-            { tag: "真心話", text: "你認為自己最吸引人嘅特質係咩？" },
-            { tag: "真心話", text: "你對「速食愛情」嘅睇法係咩？你有試過嗎？" },
-            { tag: "真心話", text: "如果可以重來，你會想改變過去哪一段感情嘅結局？" },
-            { tag: "真心話", text: "你最無法忍受伴侶嘅一種衛生習慣係咩？" },
-            { tag: "真心話", text: "你有冇試過喺感情裡面講過最嚴重嘅謊言係咩？" },
-            { tag: "真心話", text: "描述一下你心目中理想伴侶的外貌同性格特徵。" }
-        ];
+    // 真心話 (71-100)
+    { tag: "真心話", text: "分享一次你最尷尬嘅約會經歷。" },
+    { tag: "真心話", text: "你曾經做過最浪漫嘅事係咩？" },
+    { tag: "真心話", text: "你上一段感情分手嘅真正原因係咩？" },
+    { tag: "真心話", text: "你有沒有曾經無心傷害過一個好鍾意你嘅人？" },
+    { tag: "真心話", text: "你最希望另一半改掉嘅一個小習慣係咩？" },
+    { tag: "真心話", text: "你曾經試過「一腳踏兩船」或者成為第三者嗎？" },
+    { tag: "真心話", text: "你對現場哪一位（或第一印象）最有好感？" },
+    { tag: "真心話", text: "你曾經因為咩原因喺感情裡哭得最痛心？" },
+    { tag: "真心話", text: "你有冇試過睇另一半嘅手機並發現秘密？" },
+    { tag: "真心話", text: "你覺得自己喺感情中最致命嘅缺點係咩？" },
+    { tag: "真心話", text: "你最不可告人嘅擇偶隱秘偏好係咩？" },
+    { tag: "真心話", text: "你曾經告白失敗過幾多次？最難過係邊次？" },
+    { tag: "真心話", text: "你有冇試過喺熱戀期過後迅速對一個人失去感覺？" },
+    { tag: "真心話", text: "你最想收到但一直未收到過嘅禮物係咩？" },
+    { tag: "真心話", text: "你上一段感情結束後，花了幾多年/月先走出嚟？" },
+    { tag: "真心話", text: "你做過最瘋狂嘅追人/挽回感情嘅事係咩？" },
+    { tag: "真心話", text: "你覺得現場邊個最似「情場高手」？" },
+    { tag: "真心話", text: "你曾唔曾經喺拍拖期間對其他人動過心？" },
+    { tag: "真心話", text: "你覺得自己係一個合格嘅另一半嗎？給自己打幾多分？" },
+    { tag: "真心話", text: "你最害怕喺感情中遇到咩類型嘅人？" },
+    { tag: "真心話", text: "分享你最心動嘅一個被撩 moments。" },
+    { tag: "真心話", text: "你有冇試過假裝喜歡另一半嘅興趣？" },
+    { tag: "真心話", text: "你覺得理想中嘅求婚過程應該係點樣嘅？" },
+    { tag: "真心話", text: "你有冇試過同好朋友鍾意咗同一個人？最後點處置？" },
+    { tag: "真心話", text: "你認為自己最吸引人嘅特質係咩？" },
+    { tag: "真心話", text: "你對「速食愛情」嘅睇法係咩？你有試過嗎？" },
+    { tag: "真心話", text: "如果可以重來，你會想改變過去哪一段感情嘅結局？" },
+    { tag: "真心話", text: "你最無法忍受伴侶嘅一種衛生習慣係咩？" },
+    { tag: "真心話", text: "你有冇試過喺感情裡面講過最嚴重嘅謊言係咩？" },
+    { tag: "真心話", text: "描述一下你心目中理想伴侶的外貌同性格特徵。" }
+];
 
-        let questions = [];
-        let currentPlayer = 1;
+let players = [];
+let questions = [];
 
-        function initGame() {
-            questions = [...originalQuestions];
-            // 洗牌算法 (Fisher-Yates Shuffle)
-            for (let i = questions.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [questions[i], questions[j]] = [questions[j], questions[i]];
-            }
-            currentPlayer = 1;
-            updateUI(null);
-        }
+function handleKeyPress(e) {
+    if (e.key === 'Enter') {
+        addPlayer();
+    }
+}
 
-        function drawCard() {
-            if (questions.length === 0) return;
+function addPlayer() {
+    const input = document.getElementById('player-input');
+    const name = input.value.trim();
+    if (name && !players.includes(name)) {
+        players.push(name);
+        input.value = '';
+        renderPlayers();
+    }
+}
 
-            const q = questions.pop();
-            updateUI(q);
+function removePlayer(index) {
+    players.splice(index, 1);
+    renderPlayers();
+}
 
-            if (questions.length > 0) {
-                currentPlayer++;
-            }
-        }
+function renderPlayers() {
+    const list = document.getElementById('player-list');
+    const startBtn = document.getElementById('start-btn');
+    
+    list.innerHTML = players.map((p, i) => `
+        <div class="player-chip">
+            ${p} <span onclick="removePlayer(${i})">✕</span>
+        </div>
+    `).join('');
 
-        function updateUI(currentQuestion) {
-            const remainingEl = document.getElementById('remaining-count');
-            const playerEl = document.getElementById('player-num');
-            const tagEl = document.getElementById('card-tag');
-            const contentEl = document.getElementById('card-content');
-            const drawBtn = document.getElementById('draw-btn');
+    startBtn.disabled = players.length < 2;
+    startBtn.textContent = players.length < 2 
+        ? `開始遊戲 (至少需要2人，目前${players.length}人)` 
+        : `開始遊戲 (${players.length} 位玩家)`;
+}
 
-            remainingEl.textContent = questions.length;
-            playerEl.textContent = `玩家 ${currentPlayer}`;
+function startGame() {
+    questions = [...originalQuestions];
+    // 洗牌算法 (Fisher-Yates Shuffle)
+    for (let i = questions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
 
-            if (currentQuestion) {
-                tagEl.textContent = currentQuestion.tag;
-                contentEl.textContent = currentQuestion.text;
-            } else {
-                tagEl.textContent = "點擊抽牌";
-                contentEl.innerHTML = "準備好開始了嗎？<br>請輪流點擊下方按鈕抽牌！";
-            }
+    document.getElementById('setup-panel').classList.add('hidden');
+    document.getElementById('game-panel').classList.remove('hidden');
+    
+    resetCardUI();
+}
 
-            if (questions.length === 0) {
-                tagEl.textContent = "遊戲結束";
-                contentEl.textContent = "🎉 所有 100 道戀愛題目已抽完！希望大家更了解彼此！";
-                drawBtn.disabled = true;
-                drawBtn.textContent = "題目已抽完";
-            } else {
-                drawBtn.disabled = false;
-                drawBtn.textContent = `🎲 輪到 玩家 ${currentPlayer} 抽牌`;
-            }
-        }
+function drawCard() {
+    if (questions.length === 0) return;
 
-        function resetGame() {
-            if (confirm("確定要重新開始遊戲嗎？這將重置所有題目。")) {
-                initGame();
-            }
-        }
+    // 隨機抽取玩家
+    const randomPlayer = players[Math.floor(Math.random() * players.length)];
+    const q = questions.pop();
 
-        // 初始化遊戲
-        initGame();
-    </script>
+    const targetBox = document.getElementById('target-player-box');
+    const nameEl = document.getElementById('current-player-name');
+    const remainingEl = document.getElementById('remaining-count');
+    const tagEl = document.getElementById('card-tag');
+    const contentEl = document.getElementById('card-content');
+    const drawBtn = document.getElementById('draw-btn');
+
+    targetBox.style.display = 'block';
+    nameEl.textContent = randomPlayer;
+    remainingEl.textContent = questions.length;
+    tagEl.textContent = q.tag;
+    contentEl.textContent = q.text;
+
+    if (questions.length === 0) {
+        tagEl.textContent = "遊戲結束";
+        contentEl.textContent = "🎉 所有 100 道戀愛題目已抽完！希望大家更了解彼此！";
+        drawBtn.disabled = true;
+        drawBtn.textContent = "題目已抽完";
+    }
+}
+
+function resetCardUI() {
+    document.getElementById('remaining-count').textContent = questions.length;
+    document.getElementById('target-player-box').style.display = 'none';
+    document.getElementById('card-tag').textContent = "點擊抽牌";
+    document.getElementById('card-content').innerHTML = "準備好了嗎？<br>點擊下方按鈕隨機抽取玩家與題目！";
+    
+    const drawBtn = document.getElementById('draw-btn');
+    drawBtn.disabled = false;
+    drawBtn.textContent = "🎲 隨機抽牌與玩家";
+}
+
+function resetToSetup() {
+    if (confirm("確定要重設遊戲嗎？這將回到玩家設定頁面。")) {
+        document.getElementById('game-panel').classList.add('hidden');
+        document.getElementById('setup-panel').classList.remove('hidden');
+    }
+}
+</script>
 
 </body>
-
 </html>
